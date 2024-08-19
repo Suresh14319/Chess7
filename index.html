@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        #game-container {
+            display: flex;
+            margin-top: 20px;
+        }
+        #chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 2px solid black;
+        }
+        .square {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        .white {
+            background-color: #f0d9b5;
+        }
+        .black {
+            background-color: #b58863;
+        }
+        #move-list {
+            margin-left: 20px;
+        }
+        .player-info {
+            margin-bottom: 10px;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chess Game</h1>
+    <div class="player-info">
+        Player 1 (White): <input type="text" id="player1-name" value="Player 1">
+    </div>
+    <div class="player-info">
+        Player 2 (Black): <input type="text" id="player2-name" value="Player 2">
+    </div>
+    <div id="game-container">
+        <div id="chess-board"></div>
+        <div id="move-list">
+            <h3>Moves</h3>
+            <ul id="moves"></ul>
+        </div>
+    </div>
+
+    <script>
+        const board = [
+            ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+            ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+            ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+        ];
+
+        const pieceIcons = {
+            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+            'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+        };
+
+        let selectedPiece = null;
+        let currentPlayer = 'white';
+        const movesList = document.getElementById('moves');
+
+        function renderBoard() {
+            const chessBoard = document.getElementById('chess-board');
+            chessBoard.innerHTML = '';
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    square.innerHTML = pieceIcons[board[row][col]] || '';
+                    square.addEventListener('click', onSquareClick);
+                    chessBoard.appendChild(square);
+                }
+            }
+        }
+
+        function onSquareClick(event) {
+            const row = event.target.dataset.row;
+            const col = event.target.dataset.col;
+            const piece = board[row][col];
+
+            if (selectedPiece) {
+                // Move piece to the new square
+                const [prevRow, prevCol] = selectedPiece;
+                board[row][col] = board[prevRow][prevCol];
+                board[prevRow][prevCol] = '';
+                renderBoard();
+                addMoveToList(prevRow, prevCol, row, col, piece);
+
+                // Switch player
+                currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+                selectedPiece = null;
+            } else if (piece && isCurrentPlayerPiece(piece)) {
+                // Select piece to move
+                selectedPiece = [row, col];
+                highlightSquare(row, col);
+            }
+        }
+
+        function isCurrentPlayerPiece(piece) {
+            return (currentPlayer === 'white' && piece === piece.toUpperCase()) ||
+                   (currentPlayer === 'black' && piece === piece.toLowerCase());
+        }
+
+        function highlightSquare(row, col) {
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => square.classList.remove('highlight'));
+            const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            square.classList.add('highlight');
+        }
+
+        function addMoveToList(prevRow, prevCol, row, col, piece) {
+            const moveText = `${pieceIcons[piece] || ''} ${String.fromCharCode(97 + parseInt(prevCol))}${8 - prevRow} → ${String.fromCharCode(97 + parseInt(col))}${8 - row}`;
+            const moveItem = document.createElement('li');
+            moveItem.textContent = moveText;
+            movesList.appendChild(moveItem);
+        }
+
+        renderBoard();
+    </script>
+</body>
+</html>
